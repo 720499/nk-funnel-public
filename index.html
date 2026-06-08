@@ -35,9 +35,10 @@
     <p>Аудит-конструктор воронки клиники · обновляется автоматически</p>
   </header>
   <div class="cards" id="cards"></div>
+  <p class="foot" style="margin:-6px 0 0">«Заявки» — оставили заявку на лендинге (воронка трипваера). «Обращения» — все написавшие: лендинг, личка, ВК.</p>
   <h2>Посты</h2>
   <div id="posts" class="load">Загрузка…</div>
-  <h2>Лиды</h2>
+  <h2>Обращения <span id="leadcount" style="color:var(--muted);font-weight:400;font-size:13px"></span></h2>
   <div id="leads" class="load">Загрузка…</div>
   <div class="foot" id="foot"></div>
 </div>
@@ -66,7 +67,7 @@ function cell(row,cols,name){ const i=cols.indexOf(name); return i>=0?row[i]:'';
       body+=`<tr><td>${title}</td><td>${src}</td><td class="num">${fmt(i)}</td><td class="num">${fmt(c)}</td><td class="num">${fmt(l)}</td><td class="num">${fmt(s)}</td><td class="num">${rv?fmt(rv)+' ₽':'—'}</td></tr>`;
     }
     document.getElementById('cards').innerHTML=[
-      ['Показы',fmt(imp),''],['Клики',fmt(clk),''],['Лиды',fmt(led),''],['Продажи',fmt(sal),'teal'],['Выручка',fmt(rev)+' ₽','teal']
+      ['Показы',fmt(imp),''],['Клики',fmt(clk),''],['Заявки',fmt(led),''],['Продажи',fmt(sal),'teal'],['Выручка',fmt(rev)+' ₽','teal']
     ].map(([k,v,cl])=>`<div class="card"><div class="k">${k}</div><div class="v ${cl}">${v}</div></div>`).join('');
     document.getElementById('posts').outerHTML=`<table id="posts"><thead><tr><th>Пост</th><th>Источник</th><th class="num">Показы</th><th class="num">Клики</th><th class="num">Лиды</th><th class="num">Прод.</th><th class="num">Выручка</th></tr></thead><tbody>${body}</tbody></table>`;
 
@@ -78,6 +79,7 @@ function cell(row,cols,name){ const i=cols.indexOf(name); return i>=0?row[i]:'';
       lb+=`<tr><td>${nm}</td><td>${src}</td><td>${pill}</td><td>${dt}</td></tr>`;
     }
     document.getElementById('leads').outerHTML=`<table id="leads"><thead><tr><th>Имя</th><th>Источник</th><th>Статус</th><th>Дата</th></tr></thead><tbody>${lb||'<tr><td colspan=4>пока нет</td></tr>'}</tbody></table>`;
+    var lc=document.getElementById('leadcount'); if(lc) lc.textContent='— '+L.rows.length+', все источники';
     document.getElementById('foot').textContent='Загружено '+new Date().toLocaleString('ru-RU')+'. Данные обезличены.';
   }catch(e){ document.getElementById('posts').textContent='Ошибка загрузки данных'; document.getElementById('foot').textContent=String(e); }
 })();
