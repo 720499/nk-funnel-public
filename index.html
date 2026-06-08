@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Воронка трипваера — Никадемия</title>
+<style>
+  :root{ --navy:#0b1f3a; --teal:#14b8a6; --ink:#1f2d3d; --muted:#6b7a8d; --line:#e6ecf2; --bg:#f4f7fa; }
+  *{ box-sizing:border-box; } body{ margin:0; font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--ink); }
+  .wrap{ max-width:980px; margin:0 auto; padding:24px 16px 60px; }
+  header h1{ margin:0 0 4px; font-size:22px; color:var(--navy); }
+  header p{ margin:0; color:var(--muted); font-size:13px; }
+  .cards{ display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin:22px 0; }
+  .card{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px; }
+  .card .k{ font-size:12px; color:var(--muted); }
+  .card .v{ font-size:24px; font-weight:700; color:var(--navy); margin-top:4px; }
+  .card .v.teal{ color:var(--teal); }
+  h2{ font-size:15px; color:var(--navy); margin:26px 0 10px; }
+  table{ width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:12px; overflow:hidden; font-size:13px; }
+  th,td{ padding:10px 12px; text-align:left; border-bottom:1px solid var(--line); }
+  th{ background:#fafcfe; color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.03em; }
+  td.num,th.num{ text-align:right; font-variant-numeric:tabular-nums; }
+  tr:last-child td{ border-bottom:none; }
+  .pill{ display:inline-block; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600; }
+  .pill.win{ background:#dcfce7; color:#166534; } .pill.new{ background:#e0f2fe; color:#075985; }
+  .foot{ color:var(--muted); font-size:12px; margin-top:18px; }
+  .load{ color:var(--muted); padding:18px; } @media(max-width:680px){ .cards{ grid-template-columns:repeat(2,1fr);} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Воронка трипваера — Никадемия</h1>
+    <p>Аудит-конструктор воронки клиники · обновляется автоматически</p>
+  </header>
+  <div class="cards" id="cards"></div>
+  <h2>Посты</h2>
+  <div id="posts" class="load">Загрузка…</div>
+  <h2>Лиды</h2>
+  <div id="leads" class="load">Загрузка…</div>
+  <div class="foot" id="foot"></div>
+</div>
+<script>
+const SHEET='1QPgrHAcLGUcDqSAA6VVnaE3zoeT6--cXdBu5hIcQtEs';
+const num=x=>{ const n=parseFloat(String(x||'').replace(/\s/g,'').replace(',','.')); return isNaN(n)?0:n; };
+const fmt=n=> n? n.toLocaleString('ru-RU') : '0';
+async function gviz(sheet){
+  const u=`https://docs.google.com/spreadsheets/d/${SHEET}/gviz/tq?tqx=out:json&headers=1&sheet=${sheet}`;
+  const t=await (await fetch(u)).text();
+  const j=JSON.parse(t.substring(t.indexOf('{'), t.lastIndexOf('}')+1));
+  const cols=j.table.cols.map(c=>(c.label||'').toLowerCase());
+  const rows=j.table.rows.map(r=>r.c.map(c=>c?(c.v??''):''));
+  return {cols,rows};
+}
+function cell(row,cols,name){ const i=cols.indexOf(name); return i>=0?row[i]:''; }
+(async ()=>{
+  try{
+    const P=await gviz('posts');
+    let imp=0,clk=0,led=0,sal=0,rev=0, body='';
+    for(const r of P.rows){
+      const title=cell(r,P.cols,'title')||cell(r,P.cols,'id');
+      const src=cell(r,P.cols,'source');
+      const i=num(cell(r,P.cols,'impressions')), c=num(cell(r,P.cols,'clicks')), l=num(cell(r,P.cols,'leads')), s=num(cell(r,P.cols,'sales')), rv=num(cell(r,P.cols,'revenue'));
+      imp+=i;clk+=c;led+=l;sal+=s;rev+=rv;
+      body+=`<tr><td>${title}</td><td>${src}</td><td class="num">${fmt(i)}</td><td class="num">${fmt(c)}</td><td class="num">${fmt(l)}</td><td class="num">${fmt(s)}</td><td class="num">${rv?fmt(rv)+' ₽':'—'}</td></tr>`;
+    }
+    document.getElementById('cards').innerHTML=[
+      ['Показы',fmt(imp),''],['Клики',fmt(clk),''],['Лиды',fmt(led),''],['Продажи',fmt(sal),'teal'],['Выручка',fmt(rev)+' ₽','teal']
+    ].map(([k,v,cl])=>`<div class="card"><div class="k">${k}</div><div class="v ${cl}">${v}</div></div>`).join('');
+    document.getElementById('posts').outerHTML=`<table id="posts"><thead><tr><th>Пост</th><th>Источник</th><th class="num">Показы</th><th class="num">Клики</th><th class="num">Лиды</th><th class="num">Прод.</th><th class="num">Выручка</th></tr></thead><tbody>${body}</tbody></table>`;
+
+    const L=await gviz('leads');
+    let lb='';
+    for(const r of L.rows){
+      const nm=cell(r,L.cols,'имя'), src=cell(r,L.cols,'источник'), st=String(cell(r,L.cols,'статус')||''), dt=cell(r,L.cols,'дата');
+      const pill = /куп|оплач|заверш/i.test(st)?`<span class="pill win">${st}</span>`:`<span class="pill new">${st||'новый'}</span>`;
+      lb+=`<tr><td>${nm}</td><td>${src}</td><td>${pill}</td><td>${dt}</td></tr>`;
+    }
+    document.getElementById('leads').outerHTML=`<table id="leads"><thead><tr><th>Имя</th><th>Источник</th><th>Статус</th><th>Дата</th></tr></thead><tbody>${lb||'<tr><td colspan=4>пока нет</td></tr>'}</tbody></table>`;
+    document.getElementById('foot').textContent='Загружено '+new Date().toLocaleString('ru-RU')+'. Данные обезличены.';
+  }catch(e){ document.getElementById('posts').textContent='Ошибка загрузки данных'; document.getElementById('foot').textContent=String(e); }
+})();
+</script>
+</body>
+</html>
