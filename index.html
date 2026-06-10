@@ -71,15 +71,16 @@ function cell(row,cols,name){ const i=cols.indexOf(name); return i>=0?row[i]:'';
       const title=cell(r,P.cols,'title')||cell(r,P.cols,'id');
       const src=cell(r,P.cols,'source');
       const i=num(cell(r,P.cols,'impressions')), c=num(cell(r,P.cols,'clicks')), l=num(cell(r,P.cols,'leads')), s=num(cell(r,P.cols,'sales')), rv=num(cell(r,P.cols,'revenue'));
+      const dt=cell(r,P.cols,'date');
       imp+=i;clk+=c;led+=l;sal+=s;rev+=rv;
-      body+=`<tr><td>${title}</td><td>${src}</td><td class="num">${fmt(i)}</td><td class="num">${fmt(c)}</td><td class="num">${fmt(l)}</td><td class="num">${fmt(s)}</td><td class="num">${rv?fmt(rv)+' ₽':'—'}</td></tr>`;
+      body+=`<tr><td>${title}</td><td>${src}</td><td class="num">${fmt(i)}</td><td class="num">${fmt(c)}</td><td class="num">${fmt(l)}</td><td class="num">${fmt(s)}</td><td class="num">${rv?fmt(rv)+' ₽':'—'}</td><td>${dt||''}</td></tr>`;
     }
     document.getElementById('cards').innerHTML=[
       ['Показы',fmt(imp),''],['Клики',fmt(clk),''],['Заявки',fmt(led),''],['Продажи',fmt(sal),'teal'],['Выручка',fmt(rev)+' ₽','teal']
     ].map(([k,v,cl])=>`<div class="card"><div class="k">${k}</div><div class="v ${cl}">${v}</div></div>`).join('');
     const FS=[['Показы',imp],['Клики',clk],['Заявки',led],['Оплаты',sal]], FMX=Math.max(imp,1);
     document.getElementById('funnel').innerHTML=FS.map((s,i)=>{const w=Math.max(s[1]/FMX*100,3);const cv=i>0&&FS[i-1][1]?Math.round(s[1]/FS[i-1][1]*100)+'%':'';return `<div class="stage"><div class="sn">${s[0]}</div><div class="sb"><div class="sf" style="width:${w}%">${fmt(s[1])}</div></div><div class="sc">${cv}</div></div>`;}).join('');
-    document.getElementById('posts').outerHTML=`<table id="posts"><thead><tr><th>Пост</th><th>Источник</th><th class="num">Показы</th><th class="num">Клики</th><th class="num">Заявки</th><th class="num">Прод.</th><th class="num">Выручка</th></tr></thead><tbody>${body}</tbody></table>`;
+    document.getElementById('posts').outerHTML=`<table id="posts"><thead><tr><th>Пост</th><th>Источник</th><th class="num">Показы</th><th class="num">Клики</th><th class="num">Заявки</th><th class="num">Прод.</th><th class="num">Выручка</th><th>Дата</th></tr></thead><tbody>${body}</tbody></table>`;
 
     const L=await gviz('leads');
     let lb='';
